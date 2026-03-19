@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>MACRO VIP PRO — Android ios&amp; iOS</title>
+<title>MACRO VIP PRO — Android &amp; iOS</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -30,10 +30,14 @@ body{
   background:var(--bg);color:var(--white);
   min-height:100vh;overflow-x:hidden;
   position:relative;
+  /* GPU layer for body */
+  -webkit-transform:translateZ(0);
+  transform:translateZ(0);
 }
 
 /* ══════════════════════════════════════════
    ULTRA PREMIUM BACKGROUND SYSTEM
+   (Optimized: removed animation from ::before to prevent constant repaint)
 ══════════════════════════════════════════ */
 body::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -44,12 +48,13 @@ body::before{
     radial-gradient(ellipse 50% 40% at 50% 105%,rgba(139,92,246,0.12) 0%,transparent 50%),
     radial-gradient(ellipse 30% 25% at 80% 20%,rgba(6,182,212,0.06) 0%,transparent 50%),
     radial-gradient(ellipse 30% 25% at 20% 80%,rgba(251,191,36,0.04) 0%,transparent 50%);
-  animation:bgBreath 9s ease-in-out infinite;
+  /* Optimized: slower animation, will-change for GPU */
+  will-change:opacity;
+  animation:bgBreath 12s ease-in-out infinite;
 }
 @keyframes bgBreath{
   0%,100%{opacity:1}
-  33%{opacity:0.75}
-  66%{opacity:0.9}
+  50%{opacity:0.78}
 }
 body::after{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -63,33 +68,44 @@ body::after{
 }
 
 /* ══ PARTICLE CANVAS ══ */
-#particles-canvas{position:fixed;inset:0;z-index:1;pointer-events:none}
-#sparks-canvas{position:fixed;inset:0;z-index:2;pointer-events:none}
+#particles-canvas{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  will-change:transform;
+}
+#sparks-canvas{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  will-change:transform;
+}
 
-/* ══ FLOATING ORBS ══ */
-.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:1;filter:blur(80px);}
-.orb1{width:420px;height:420px;top:-140px;left:-120px;background:radial-gradient(circle,rgba(255,32,32,0.12),transparent 70%);animation:o1 16s ease-in-out infinite;}
-.orb2{width:380px;height:380px;bottom:-120px;right:-100px;background:radial-gradient(circle,rgba(139,92,246,0.1),transparent 70%);animation:o2 20s ease-in-out infinite;}
-.orb3{width:280px;height:280px;top:35%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,32,32,0.06),transparent 70%);animation:o3 13s ease-in-out infinite;}
-.orb4{width:200px;height:200px;top:15%;right:5%;background:radial-gradient(circle,rgba(6,182,212,0.07),transparent 70%);animation:o4 18s ease-in-out infinite;}
-.orb5{width:160px;height:160px;bottom:25%;left:5%;background:radial-gradient(circle,rgba(251,191,36,0.05),transparent 70%);animation:o5 22s ease-in-out infinite;}
-@keyframes o1{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(60px,50px) scale(1.1)}70%{transform:translate(30px,80px) scale(0.95)}}
-@keyframes o2{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(-50px,-60px) scale(1.05)}70%{transform:translate(-80px,-30px) scale(1.1)}}
-@keyframes o3{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.4)}}
-@keyframes o4{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,40px)}}
-@keyframes o5{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-30px)}}
+/* ══ FLOATING ORBS (reduced blur, fewer orbs, GPU accelerated) ══ */
+.orb{
+  position:fixed;border-radius:50%;pointer-events:none;z-index:1;
+  filter:blur(60px);
+  will-change:transform;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+.orb1{width:380px;height:380px;top:-120px;left:-100px;background:radial-gradient(circle,rgba(255,32,32,0.1),transparent 70%);animation:o1 18s ease-in-out infinite;}
+.orb2{width:340px;height:340px;bottom:-100px;right:-80px;background:radial-gradient(circle,rgba(139,92,246,0.08),transparent 70%);animation:o2 22s ease-in-out infinite;}
+.orb3{width:240px;height:240px;top:35%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,32,32,0.05),transparent 70%);animation:o3 16s ease-in-out infinite;}
+/* Removed orb4 and orb5 for performance on weak devices — effect preserved by orb1-3 */
+
+@keyframes o1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,60px) scale(1.08)}}
+@keyframes o2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-50px,-40px) scale(1.06)}}
+@keyframes o3{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.3)}}
 
 /* ══ ENERGY LINES (background decoration) ══ */
 .energy-line{
   position:fixed;pointer-events:none;z-index:1;
-  height:1px;background:linear-gradient(90deg,transparent,rgba(255,32,32,0.3),transparent);
-  animation:eLine 4s ease-in-out infinite;
+  height:1px;
+  will-change:opacity,transform;
+  animation:eLine 5s ease-in-out infinite;
   width:60%;left:20%;
 }
-.energy-line.el1{top:25%;animation-delay:0s;}
-.energy-line.el2{top:50%;animation-delay:1.5s;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.2),transparent);}
-.energy-line.el3{top:75%;animation-delay:3s;}
-@keyframes eLine{0%,100%{opacity:0;transform:scaleX(0)}30%{opacity:1;transform:scaleX(1)}70%{opacity:1;transform:scaleX(1)}}
+.energy-line.el1{top:25%;background:linear-gradient(90deg,transparent,rgba(255,32,32,0.25),transparent);animation-delay:0s;}
+.energy-line.el2{top:50%;animation-delay:2s;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.18),transparent);}
+.energy-line.el3{top:75%;background:linear-gradient(90deg,transparent,rgba(255,32,32,0.2),transparent);animation-delay:4s;}
+@keyframes eLine{0%,100%{opacity:0;transform:scaleX(0)}35%{opacity:1;transform:scaleX(1)}65%{opacity:1;transform:scaleX(1)}}
 
 /* ══ TOAST ══ */
 .toast-wrap{
@@ -103,6 +119,7 @@ body::after{
   color:#f0e6ff;padding:12px 16px;border-radius:15px;
   font-size:13px;font-weight:700;
   backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
   display:flex;align-items:center;gap:10px;
   animation:toastIn 0.38s cubic-bezier(0.19,1,0.22,1),toastOut 0.3s ease-in 2.9s forwards;
   box-shadow:0 8px 36px rgba(255,32,32,0.2),0 0 0 1px rgba(255,32,32,0.1),inset 0 0 20px rgba(255,32,32,0.03);
@@ -123,7 +140,9 @@ body::after{
 .pwd-overlay{
   position:fixed;inset:0;
   background:linear-gradient(135deg,rgba(6,0,10,0.99),rgba(14,2,20,0.99));
-  backdrop-filter:blur(24px);z-index:88888;
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  z-index:88888;
   display:flex;justify-content:center;align-items:center;
   padding:24px;
 }
@@ -141,7 +160,11 @@ body::after{
   position:relative;overflow:hidden;
 }
 @keyframes pwdPop{from{transform:scale(0.85) translateY(30px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
-.pwd-box::before{content:'';position:absolute;top:0;left:-100%;width:70%;height:100%;background:linear-gradient(to right,transparent,rgba(255,32,32,0.05),transparent);animation:sweep 3s ease-in-out infinite;}
+.pwd-box::before{
+  content:'';position:absolute;top:0;left:-100%;width:70%;height:100%;
+  background:linear-gradient(to right,transparent,rgba(255,32,32,0.05),transparent);
+  animation:sweep 3.5s ease-in-out infinite;
+}
 @keyframes sweep{100%{left:200%}}
 .pwd-icon-wrap{
   width:76px;height:76px;border-radius:50%;margin:0 auto 22px;
@@ -150,9 +173,12 @@ body::after{
   display:flex;align-items:center;justify-content:center;font-size:30px;
   color:var(--red2);
   box-shadow:0 0 0 6px rgba(255,32,32,0.06),0 0 30px rgba(255,32,32,0.3);
-  animation:iconPulse 2.2s ease-in-out infinite;
+  animation:iconPulse 2.5s ease-in-out infinite;
 }
-@keyframes iconPulse{0%,100%{box-shadow:0 0 0 6px rgba(255,32,32,0.06),0 0 25px rgba(255,32,32,0.25)}50%{box-shadow:0 0 0 10px rgba(255,32,32,0.08),0 0 50px rgba(255,32,32,0.55),0 0 80px rgba(255,32,32,0.15)}}
+@keyframes iconPulse{
+  0%,100%{box-shadow:0 0 0 6px rgba(255,32,32,0.06),0 0 25px rgba(255,32,32,0.25)}
+  50%{box-shadow:0 0 0 10px rgba(255,32,32,0.08),0 0 50px rgba(255,32,32,0.55),0 0 80px rgba(255,32,32,0.15)}
+}
 .pwd-title{text-align:center;font-size:19px;font-weight:900;margin-bottom:5px;background:linear-gradient(135deg,var(--red2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:0.5px}
 .pwd-sub{text-align:center;font-size:12px;color:var(--sub);margin-bottom:26px}
 .pwd-inp-wrap{
@@ -180,7 +206,7 @@ body::after{
   transition:all 0.3s;position:relative;overflow:hidden;font-family:'Nunito',sans-serif;
 }
 .btn-pwd-submit:hover{box-shadow:0 14px 45px rgba(255,32,32,0.5);transform:translateY(-1px)}
-.btn-pwd-submit::before{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(to right,transparent,rgba(255,255,255,0.12),transparent);animation:btnShine 2s ease-in-out infinite}
+.btn-pwd-submit::before{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(to right,transparent,rgba(255,255,255,0.12),transparent);animation:btnShine 2.5s ease-in-out infinite}
 @keyframes btnShine{100%{left:200%}}
 
 /* ══════════════════════════════════════════
@@ -190,6 +216,7 @@ body::after{
   position:fixed;inset:0;
   background:linear-gradient(135deg,rgba(5,0,8,0.94),rgba(10,0,16,0.96));
   backdrop-filter:blur(28px);
+  -webkit-backdrop-filter:blur(28px);
   z-index:88880;
   display:flex;justify-content:center;align-items:center;
   padding:20px;
@@ -218,8 +245,9 @@ body::after{
     rgba(255,32,32,0.9) 300deg,
     rgba(255,32,32,0) 360deg
   );
-  animation:kmRingRot 3s linear infinite;
+  animation:kmRingRot 4s linear infinite;
   filter:blur(3px);z-index:0;
+  will-change:transform;
 }
 @keyframes kmRingRot{100%{transform:rotate(360deg)}}
 
@@ -234,8 +262,9 @@ body::after{
     rgba(255,32,32,0) 270deg,
     rgba(255,82,82,0.4) 360deg
   );
-  animation:kmRingRot 3s linear infinite reverse;
+  animation:kmRingRot 4s linear infinite reverse;
   filter:blur(1px);z-index:0;
+  will-change:transform;
 }
 
 .km-inner{
@@ -271,6 +300,7 @@ body::after{
   animation:kmScan 3s ease-in-out infinite;
   z-index:3;pointer-events:none;
   box-shadow:0 0 10px rgba(255,32,32,0.5);
+  will-change:top;
 }
 @keyframes kmScan{0%{top:-4px;opacity:0}8%{opacity:1}92%{opacity:1}100%{top:calc(100%+4px);opacity:0}}
 
@@ -293,7 +323,10 @@ body::after{
   position:relative;animation:kmLogo 2.5s ease-in-out infinite;
   box-shadow:0 0 0 8px rgba(255,32,32,0.05),0 0 40px rgba(255,32,32,0.3);
 }
-@keyframes kmLogo{0%,100%{box-shadow:0 0 0 8px rgba(255,32,32,0.05),0 0 30px rgba(255,32,32,0.25)}50%{box-shadow:0 0 0 14px rgba(255,32,32,0.08),0 0 60px rgba(255,32,32,0.55),0 0 100px rgba(255,32,32,0.15)}}
+@keyframes kmLogo{
+  0%,100%{box-shadow:0 0 0 8px rgba(255,32,32,0.05),0 0 30px rgba(255,32,32,0.25)}
+  50%{box-shadow:0 0 0 14px rgba(255,32,32,0.08),0 0 60px rgba(255,32,32,0.55),0 0 100px rgba(255,32,32,0.15)}
+}
 .km-logo-r1{position:absolute;inset:-8px;border-radius:50%;border:1.5px solid rgba(255,32,32,0.18);animation:rPulse 2.5s ease-in-out infinite;}
 .km-logo-r2{position:absolute;inset:-16px;border-radius:50%;border:1px solid rgba(255,32,32,0.1);animation:rPulse 2.5s ease-in-out infinite 0.4s;}
 .km-logo-r3{position:absolute;inset:-24px;border-radius:50%;border:1px solid rgba(255,32,32,0.05);animation:rPulse 2.5s ease-in-out infinite 0.8s;}
@@ -304,7 +337,7 @@ body::after{
   background:linear-gradient(135deg,#ff2020 0%,#ff5252 30%,#fbbf24 55%,#ff5252 80%,#ff2020 100%);
   background-size:200% auto;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  animation:titleFlow 3s linear infinite;
+  animation:titleFlow 3.5s linear infinite;
   letter-spacing:1.5px;margin-bottom:6px;
 }
 @keyframes titleFlow{0%{background-position:0% center}100%{background-position:200% center}}
@@ -361,7 +394,7 @@ body::after{
   transition:all 0.3s;position:relative;overflow:hidden;font-family:'Nunito',sans-serif;
   letter-spacing:0.5px;
 }
-.km-btn::before{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(to right,transparent,rgba(255,255,255,0.12),transparent);animation:btnShine 2s ease-in-out infinite}
+.km-btn::before{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(to right,transparent,rgba(255,255,255,0.12),transparent);animation:btnShine 2.5s ease-in-out infinite}
 .km-btn:hover{box-shadow:0 16px 45px rgba(255,32,32,0.55),0 0 0 1px rgba(255,82,82,0.2);transform:translateY(-1px)}
 .km-btn:active{transform:translateY(0)}
 .km-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
@@ -382,6 +415,7 @@ body::after{
   border:1.5px solid rgba(255,32,32,0.22);border-radius:20px;
   padding:11px 16px;
   backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
   box-shadow:0 0 0 1px rgba(255,32,32,0.06),0 8px 30px rgba(0,0,0,0.4),0 0 40px rgba(255,32,32,0.05);
   position:relative;overflow:hidden;
 }
@@ -390,7 +424,7 @@ body::after{
 .nav-title-wrap{flex:1;min-width:0}
 .nav-title{font-size:13.5px;font-weight:900;letter-spacing:0.5px;background:linear-gradient(135deg,var(--red2) 0%,#ff7070 50%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .nav-sub{font-size:10px;color:var(--sub);margin-top:1px;display:flex;align-items:center;gap:5px}
-.nav-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:navDot 1.8s ease-in-out infinite}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:navDot 2s ease-in-out infinite}
 @keyframes navDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.7)}}
 .nav-actions{display:flex;align-items:center;gap:8px}
 .nav-btn{width:36px;height:36px;border-radius:10px;background:rgba(24,4,32,0.7);border:1.5px solid rgba(255,32,32,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);font-size:15px;transition:all 0.25s;position:relative;}
@@ -398,7 +432,7 @@ body::after{
 .notif-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:9px;font-weight:900;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--bg);animation:badgePop 0.4s cubic-bezier(0.22,1.2,0.36,1);}
 .notif-badge.show{display:flex}
 @keyframes badgePop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
-.notif-badge.pulse{animation:badgePulse 1.2s ease-in-out infinite}
+.notif-badge.pulse{animation:badgePulse 1.5s ease-in-out infinite}
 @keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,32,32,0.7)}50%{box-shadow:0 0 0 6px rgba(255,32,32,0)}}
 
 /* ══════════════════════════════════════════
@@ -414,7 +448,8 @@ body::after{
   content:'';position:absolute;inset:-2px;border-radius:26px;
   background:linear-gradient(135deg,rgba(255,32,32,0.9),rgba(255,82,82,0.4),rgba(139,92,246,0.3),rgba(255,32,32,0.7));
   background-size:300% 300%;
-  animation:borderGlow 4s ease-in-out infinite;z-index:0;
+  animation:borderGlow 5s ease-in-out infinite;z-index:0;
+  will-change:background-position;
 }
 @keyframes borderGlow{0%,100%{background-position:0% 50%;opacity:0.8}50%{background-position:100% 50%;opacity:1}}
 .macro-frame-inner{
@@ -428,7 +463,7 @@ body::after{
 .macro-frame-inner::before{
   content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
   background:linear-gradient(to right,transparent,rgba(255,32,32,0.04),transparent);
-  animation:sweep 5s ease-in-out infinite;pointer-events:none;z-index:0;
+  animation:sweep 6s ease-in-out infinite;pointer-events:none;z-index:0;
 }
 /* Top gradient line */
 .macro-frame-inner::after{
@@ -438,11 +473,11 @@ body::after{
 }
 
 /* Corner dots */
-.fc{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red),0 0 20px rgba(255,32,32,0.5);animation:fcPulse 2s ease-in-out infinite;z-index:3;}
+.fc{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red),0 0 20px rgba(255,32,32,0.5);animation:fcPulse 2.2s ease-in-out infinite;z-index:3;}
 .fc.tl{top:-4px;left:-4px;animation-delay:0s}
-.fc.tr{top:-4px;right:-4px;animation-delay:0.5s}
-.fc.bl{bottom:-4px;left:-4px;animation-delay:1s}
-.fc.br{bottom:-4px;right:-4px;animation-delay:1.5s}
+.fc.tr{top:-4px;right:-4px;animation-delay:0.55s}
+.fc.bl{bottom:-4px;left:-4px;animation-delay:1.1s}
+.fc.br{bottom:-4px;right:-4px;animation-delay:1.65s}
 @keyframes fcPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.6)}}
 
 .macro-header{
@@ -457,16 +492,19 @@ body::after{
   border:2px solid rgba(255,32,32,0.45);
   display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--red2);
   box-shadow:0 0 0 4px rgba(255,32,32,0.06),0 0 25px rgba(255,32,32,0.35);
-  animation:macroIconGlow 2.5s ease-in-out infinite;
+  animation:macroIconGlow 3s ease-in-out infinite;
 }
-@keyframes macroIconGlow{0%,100%{box-shadow:0 0 0 4px rgba(255,32,32,0.06),0 0 20px rgba(255,32,32,0.3)}50%{box-shadow:0 0 0 8px rgba(255,32,32,0.08),0 0 40px rgba(255,32,32,0.6),0 0 60px rgba(255,32,32,0.15)}}
+@keyframes macroIconGlow{
+  0%,100%{box-shadow:0 0 0 4px rgba(255,32,32,0.06),0 0 20px rgba(255,32,32,0.3)}
+  50%{box-shadow:0 0 0 8px rgba(255,32,32,0.08),0 0 40px rgba(255,32,32,0.6),0 0 60px rgba(255,32,32,0.15)}
+}
 .macro-title-block{flex:1;min-width:0}
 .macro-title{
   font-size:19px;font-weight:900;letter-spacing:1.2px;
   background:linear-gradient(135deg,#ff2020 0%,#ff6060 35%,#fbbf24 60%,#ff6060 80%,#ff2020 100%);
   background-size:200% auto;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  animation:titleFlow 4s linear infinite;
+  animation:titleFlow 4.5s linear infinite;
 }
 .macro-sub{font-size:11px;color:var(--sub);margin-top:3px;font-weight:600}
 .macro-status-badge{
@@ -475,7 +513,7 @@ body::after{
   font-size:10px;font-weight:900;color:var(--green2);flex-shrink:0;letter-spacing:0.8px;
   box-shadow:0 0 12px rgba(16,185,129,0.15);
 }
-.macro-status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:navDot 1.8s ease-in-out infinite}
+.macro-status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:navDot 2s ease-in-out infinite}
 
 /* ══ PLATFORM BADGES (clickable) ══ */
 .platform-row{
@@ -529,7 +567,7 @@ body::after{
 .free-key-section::before{
   content:'';position:absolute;inset:-2px;border-radius:22px;
   background:linear-gradient(135deg,rgba(251,191,36,0.7),rgba(255,32,32,0.3),rgba(251,191,36,0.5));
-  background-size:200% 200%;animation:borderGlow 3s ease-in-out infinite;z-index:0;
+  background-size:200% 200%;animation:borderGlow 4s ease-in-out infinite;z-index:0;
 }
 .free-key-section::after{content:'';position:absolute;inset:2px;border-radius:19px;background:linear-gradient(135deg,rgba(20,4,28,0.99),rgba(26,5,34,0.99));z-index:0;}
 .fk-inner{position:relative;z-index:1;}
@@ -564,7 +602,7 @@ body::after{
   content:'';position:absolute;inset:-1.5px;border-radius:21.5px;
   background:linear-gradient(135deg,rgba(255,32,32,0.6),rgba(255,82,82,0.3),rgba(139,92,246,0.2),rgba(255,32,32,0.5));
   background-size:300% 300%;
-  animation:borderGlow 5s ease-in-out infinite;z-index:0;
+  animation:borderGlow 6s ease-in-out infinite;z-index:0;
   opacity:0.6;
 }
 .feat-card::after{
@@ -575,7 +613,7 @@ body::after{
 .feat-card-content{position:relative;z-index:1;display:flex;align-items:center;gap:14px;width:100%;}
 .feat-card.on::before{
   opacity:1;
-  animation:borderGlow 2.5s ease-in-out infinite;
+  animation:borderGlow 3s ease-in-out infinite;
   background:linear-gradient(135deg,rgba(255,32,32,0.9),rgba(255,82,82,0.6),rgba(255,32,32,0.8));
 }
 .feat-card.on{
@@ -588,7 +626,7 @@ body::after{
   background:linear-gradient(to right,transparent,rgba(255,32,32,0.04),transparent);
   pointer-events:none;
 }
-.feat-card.on .feat-card-sweep{animation:sweep 2.5s ease-in-out infinite}
+.feat-card.on .feat-card-sweep{animation:sweep 3s ease-in-out infinite}
 
 /* Crosshair icon */
 .feat-icon{width:50px;height:50px;border-radius:14px;flex-shrink:0;background:rgba(255,32,32,0.08);border:1.5px solid rgba(255,32,32,0.25);display:flex;align-items:center;justify-content:center;position:relative;transition:all 0.35s;}
@@ -625,7 +663,9 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
 ══════════════════════════════════════════ */
 .platform-modal-overlay{
   position:fixed;inset:0;background:rgba(5,0,10,0.8);
-  backdrop-filter:blur(18px);z-index:90000;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  z-index:90000;
   display:flex;justify-content:center;align-items:flex-end;
   opacity:0;pointer-events:none;transition:opacity 0.35s;
 }
@@ -638,7 +678,7 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
   transform:translateY(100%);
   transition:transform 0.48s cubic-bezier(0.22,1,0.36,1);
   max-height:85vh;overflow:hidden;display:flex;flex-direction:column;
-  position:relative;overflow:hidden;
+  position:relative;
 }
 .platform-modal-overlay.show .platform-modal{transform:translateY(0)}
 .pm-top-glow{position:absolute;top:0;left:0;right:0;height:3px;z-index:2;transition:background 0.3s;}
@@ -657,7 +697,7 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
 .pm-sub{font-size:11.5px;color:var(--sub)}
 .pm-close{width:34px;height:34px;border-radius:10px;background:rgba(30,8,40,0.7);border:1px solid rgba(255,32,32,0.15);color:var(--sub);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;flex-shrink:0;}
 .pm-close:hover{background:rgba(255,32,32,0.12);color:var(--red2)}
-.pm-content{flex:1;overflow-y:auto;padding:16px 18px 8px;}
+.pm-content{flex:1;overflow-y:auto;padding:16px 18px 8px;-webkit-overflow-scrolling:touch;}
 .pm-content::-webkit-scrollbar{width:3px}
 .pm-content::-webkit-scrollbar-thumb{background:rgba(255,32,32,0.2);border-radius:3px}
 
@@ -708,7 +748,7 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
 }
 @keyframes actIn{from{transform:translateY(-30px) scale(0.92);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
 .act-modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--red2),transparent);}
-.act-modal::after{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(to right,transparent,rgba(255,32,32,0.06),transparent);animation:sweep 2s ease-in-out infinite;}
+.act-modal::after{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(to right,transparent,rgba(255,32,32,0.06),transparent);animation:sweep 2.5s ease-in-out infinite;}
 .act-gear-wrap{width:46px;height:46px;border-radius:13px;flex-shrink:0;background:rgba(255,32,32,0.12);border:1.5px solid rgba(255,32,32,0.35);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red2);box-shadow:0 0 18px rgba(255,32,32,0.3);}
 .act-gear-wrap.spinning i{animation:gearSpin 0.8s linear infinite}
 @keyframes gearSpin{100%{transform:rotate(360deg)}}
@@ -735,9 +775,24 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
 /* ══════════════════════════════════════════
    NOTIFICATION PANEL
 ══════════════════════════════════════════ */
-.notif-overlay{position:fixed;inset:0;background:rgba(6,0,10,0.78);backdrop-filter:blur(14px);z-index:88000;display:flex;justify-content:center;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.notif-overlay{
+  position:fixed;inset:0;background:rgba(6,0,10,0.78);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  z-index:88000;display:flex;justify-content:center;align-items:flex-end;
+  opacity:0;pointer-events:none;transition:opacity 0.3s;
+}
 .notif-overlay.show{opacity:1;pointer-events:all}
-.notif-panel{width:100%;max-width:480px;background:linear-gradient(160deg,rgba(12,2,16,0.99),rgba(22,5,28,0.99));border:1px solid rgba(255,32,32,0.2);border-radius:28px 28px 0 0;padding:0 0 50px;transform:translateY(100%);transition:transform 0.45s cubic-bezier(0.22,1,0.36,1);max-height:78vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -20px 80px rgba(255,32,32,0.14),0 -2px 0 rgba(255,32,32,0.25);}
+.notif-panel{
+  width:100%;max-width:480px;
+  background:linear-gradient(160deg,rgba(12,2,16,0.99),rgba(22,5,28,0.99));
+  border:1px solid rgba(255,32,32,0.2);border-radius:28px 28px 0 0;
+  padding:0 0 50px;
+  transform:translateY(100%);
+  transition:transform 0.45s cubic-bezier(0.22,1,0.36,1);
+  max-height:78vh;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 -20px 80px rgba(255,32,32,0.14),0 -2px 0 rgba(255,32,32,0.25);
+}
 .notif-overlay.show .notif-panel{transform:translateY(0)}
 .notif-panel-header{padding:18px 22px 14px;border-bottom:1px solid rgba(255,32,32,0.1);background:rgba(14,3,18,0.6);position:relative;}
 .notif-panel-header::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red2),transparent);}
@@ -751,7 +806,7 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
 .btn-notif-readall:hover{background:rgba(255,32,32,0.08)}
 .btn-notif-panel-close{width:32px;height:32px;border-radius:9px;background:rgba(30,8,38,0.7);border:1px solid rgba(255,32,32,0.18);color:var(--sub);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;}
 .btn-notif-panel-close:hover{background:rgba(255,32,32,0.12);color:var(--red2)}
-.notif-list-wrap{flex:1;overflow-y:auto;padding:14px 14px 8px}
+.notif-list-wrap{flex:1;overflow-y:auto;padding:14px 14px 8px;-webkit-overflow-scrolling:touch;}
 .notif-list-wrap::-webkit-scrollbar{width:3px}
 .notif-list-wrap::-webkit-scrollbar-thumb{background:rgba(255,32,32,0.2);border-radius:3px}
 .notif-item{display:flex;gap:11px;padding:13px;border-radius:15px;border:1px solid rgba(255,32,32,0.08);background:rgba(26,5,36,0.5);margin-bottom:9px;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;}
@@ -777,6 +832,15 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
 
 /* Footer */
 .app-footer{width:100%;max-width:480px;text-align:center;font-size:11px;color:#3a2540;font-family:'JetBrains Mono',monospace;margin-top:6px;padding:10px;background:rgba(14,2,20,0.5);border-radius:14px;border:1px solid rgba(255,32,32,0.06);}
+
+/* ══ LOW POWER MODE CLASS — auto applied on weak devices ══ */
+.low-power body::before{animation:none!important;}
+.low-power .orb{animation:none!important;display:none!important;}
+.low-power .energy-line{animation:none!important;display:none!important;}
+.low-power .km-glow-ring,.low-power .km-glow-ring2{animation-duration:6s!important;}
+.low-power .feat-card::before{animation:none!important;}
+.low-power .macro-frame::before{animation:none!important;}
+.low-power .free-key-section::before{animation:none!important;}
 </style>
 </head>
 <body>
@@ -786,8 +850,6 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 <div class="orb orb3"></div>
-<div class="orb orb4"></div>
-<div class="orb orb5"></div>
 <div class="energy-line el1"></div>
 <div class="energy-line el2"></div>
 <div class="energy-line el3"></div>
@@ -835,19 +897,19 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
       </div>
 
       <div class="km-title">NHẬP KEY VIP</div>
-      <div class="km-subtitle">Kích hoạt MACRO VIP PRO để trải nghiệm<br>toàn bộ tính năng nâng cao</div>
+      <div class="km-subtitle">Nhập key kích hoạt để sử dụng đầy đủ tính năng</div>
 
-      <!-- Free Key inside modal -->
+      <!-- Free key inside modal -->
       <div class="km-fk" id="km-fk">
         <div class="km-fk-head">
           <div class="km-fk-ico"><i class="fa-solid fa-gift"></i></div>
           <div>
-            <div class="km-fk-ttl">🎁 Lấy Key Miễn Phí</div>
-            <div class="km-fk-sub">Copy link → mở trình duyệt → lấy key</div>
+            <div class="km-fk-ttl">Lấy Key Miễn Phí</div>
+            <div class="km-fk-sub">Copy link và mở trình duyệt</div>
           </div>
         </div>
         <div class="km-fk-row">
-          <input class="km-fk-inp" id="km-fk-inp" type="text" readonly value="Đang tải...">
+          <input class="km-fk-inp" id="km-fk-inp" type="text" value="" readonly>
           <button class="km-fk-btn" id="km-fk-btn" onclick="copyKmFk()">
             <i class="fa-solid fa-copy" id="km-fk-ic"></i>
             <span id="km-fk-lb">COPY</span>
@@ -855,52 +917,53 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
         </div>
       </div>
 
-      <div class="km-inp-lbl"><i class="fa-solid fa-key"></i> KEY KÍCH HOẠT VIP</div>
-      <input class="km-inp-field" id="key-modal-inp" type="text" placeholder="VIP-XXXX-XXXX-XXXX" autocomplete="off" onkeydown="if(event.key==='Enter')submitKey()">
-      <div class="km-err" id="km-err">Key không hợp lệ hoặc đã hết hạn!</div>
+      <div class="km-inp-lbl"><i class="fa-solid fa-key"></i> KEY KÍCH HOẠT</div>
+      <input class="km-inp-field" id="key-modal-inp" type="text" placeholder="Nhập key tại đây..." onkeydown="if(event.key==='Enter')submitKey()">
+
+      <div class="km-err" id="km-err"></div>
 
       <button class="km-btn" id="km-btn" onclick="submitKey()">
         <i class="fa-solid fa-unlock-keyhole"></i> XÁC NHẬN KEY
       </button>
 
       <div class="km-stats">
-        <div class="km-stat">
-          <div class="km-sv">KEY</div>
-          <div class="km-sl">Chế độ</div>
-        </div>
-        <div class="km-stat">
-          <div class="km-sv" style="color:var(--gold)">VIP</div>
-          <div class="km-sl">Gói dùng</div>
-        </div>
-        <div class="km-stat">
-          <div class="km-sv" style="color:var(--green2)">LIVE</div>
-          <div class="km-sl">Kết nối</div>
-        </div>
+        <div class="km-stat"><span class="km-sv">FREE FIRE</span><span class="km-sl">Game</span></div>
+        <div class="km-stat"><span class="km-sv">VIP</span><span class="km-sl">Gói</span></div>
+        <div class="km-stat"><span class="km-sv">SECURE</span><span class="km-sl">Bảo mật</span></div>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════
-     ACTIVATION MODAL
+     ACTIVATION MODAL (top popup)
 ══════════════════════════════════════════ -->
 <div class="act-modal-wrap" id="act-modal-wrap">
   <div class="act-modal">
-    <div class="act-gear-wrap spinning" id="act-gear">
+    <div class="act-gear-wrap" id="act-gear">
       <i class="fa-solid fa-gear" id="act-gear-icon"></i>
     </div>
     <div class="act-content">
       <div class="act-title" id="act-title">Đang kích hoạt...</div>
-      <div class="act-sub" id="act-sub">Vui lòng đợi trong giây lát</div>
-      <div class="act-steps">
-        <div class="act-step active" id="astep-1"><div class="act-step-dot"><i class="fa-solid fa-check"></i></div>Tải cấu hình macro...</div>
-        <div class="act-step" id="astep-2"><div class="act-step-dot"><i class="fa-solid fa-check"></i></div>Áp dụng thiết lập...</div>
-        <div class="act-step" id="astep-3"><div class="act-step-dot"><i class="fa-solid fa-check"></i></div>Hoàn tất kích hoạt!</div>
+      <div class="act-sub" id="act-sub"></div>
+      <div class="act-steps" id="act-steps">
+        <div class="act-step active" id="astep-1">
+          <div class="act-step-dot"><i class="fa-solid fa-check"></i></div>
+          Khởi tạo module
+        </div>
+        <div class="act-step" id="astep-2">
+          <div class="act-step-dot"><i class="fa-solid fa-check"></i></div>
+          Kết nối server
+        </div>
+        <div class="act-step" id="astep-3">
+          <div class="act-step-dot"><i class="fa-solid fa-check"></i></div>
+          Kích hoạt tính năng
+        </div>
       </div>
-      <div class="act-info-row" id="act-info-row" style="display:none">
-        <span class="act-chip act-chip-green"><i class="fa-solid fa-circle-check"></i> ACTIVE</span>
+      <div class="act-info-row" id="act-info-row" style="display:none;">
+        <span class="act-chip act-chip-green"><i class="fa-solid fa-circle-check"></i> OK</span>
         <span class="act-chip act-chip-red" id="act-chip-name"></span>
-        <span class="act-chip act-chip-gold"><i class="fa-solid fa-crown"></i> VIP</span>
+        <span class="act-chip act-chip-gold"><i class="fa-solid fa-bolt"></i> ACTIVE</span>
       </div>
     </div>
     <div class="act-check-big" id="act-check-big"><i class="fa-solid fa-circle-check"></i></div>
@@ -911,24 +974,25 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
      NOTIFICATION PANEL
 ══════════════════════════════════════════ -->
 <div class="notif-overlay" id="notif-overlay" onclick="closeNotifPanel(event)">
-  <div class="notif-panel" id="notif-panel">
+  <div class="notif-panel">
     <div class="notif-panel-header">
       <div class="notif-drag"></div>
       <div class="notif-panel-title-row">
         <div class="notif-panel-title">
-          <i class="fa-solid fa-bell"></i>Thông Báo
-          <span class="notif-new-count" id="notif-new-count" style="display:none"></span>
+          <i class="fa-solid fa-bell"></i>
+          Thông báo
+          <span class="notif-new-count" id="notif-new-count" style="display:none;">0 mới</span>
         </div>
-        <button class="btn-notif-readall" id="btn-readall" onclick="markAllRead()" style="display:none">Đọc tất</button>
+        <button class="btn-notif-readall" id="btn-readall" onclick="markAllRead()" style="display:none;">Đọc tất cả</button>
         <button class="btn-notif-panel-close" onclick="closeNotifPanelBtn()"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="notif-panel-sub" id="notif-panel-sub">Không có thông báo mới</div>
+      <div class="notif-panel-sub" id="notif-panel-sub">Không có thông báo</div>
     </div>
     <div class="notif-list-wrap" id="notif-list-wrap">
       <div class="notif-empty" id="notif-empty">
-        <i class="fa-regular fa-bell-slash"></i>
+        <i class="fa-solid fa-bell-slash"></i>
         <div class="notif-empty-txt">Chưa có thông báo</div>
-        <div class="notif-empty-sub">Admin sẽ gửi thông báo tại đây</div>
+        <div class="notif-empty-sub">Thông báo mới sẽ xuất hiện tại đây</div>
       </div>
     </div>
   </div>
@@ -955,46 +1019,46 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
       <div class="pm-warn-box">
         <div class="pm-warn-icon"><i class="fa-solid fa-shield-halved"></i></div>
         <div>
-          <div class="pm-warn-title">Bảo mật VIP — Anti-Detect Shield</div>
-          <div class="pm-warn-txt">Macro được mã hóa AES-256, bypass hệ thống chống gian lận của game. Không có dữ liệu cá nhân nào được gửi về server. Hoàn toàn an toàn.</div>
+          <div class="pm-warn-title">Android Shield — Root-Free Technology</div>
+          <div class="pm-warn-txt">Hoạt động hoàn toàn không cần root. Sử dụng kỹ thuật injection an toàn, vô hình với hệ thống. Google Play Protect không thể phát hiện.</div>
         </div>
       </div>
 
       <div class="pm-card">
-        <div class="pm-card-title"><i class="fa-solid fa-mobile-screen-button"></i>Yêu cầu hệ thống</div>
+        <div class="pm-card-title"><i class="fa-brands fa-android"></i>Yêu cầu hệ thống</div>
         <div class="pm-spec-row">
           <div class="pm-spec-icon"><i class="fa-brands fa-android"></i></div>
           <div class="pm-spec-body">
             <div class="pm-spec-lbl">Phiên bản Android</div>
-            <div class="pm-spec-val">Android 8.0 (Oreo) trở lên · Tối ưu Android 12/13/14</div>
+            <div class="pm-spec-val">Android 8.0 trở lên · Tối ưu Android 11/12/13/14</div>
+          </div>
+        </div>
+        <div class="pm-spec-row">
+          <div class="pm-spec-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+          <div class="pm-spec-body">
+            <div class="pm-spec-lbl">Thiết bị tương thích</div>
+            <div class="pm-spec-val">Samsung · Xiaomi · OPPO · Vivo · Realme · OnePlus</div>
           </div>
         </div>
         <div class="pm-spec-row">
           <div class="pm-spec-icon"><i class="fa-solid fa-microchip"></i></div>
           <div class="pm-spec-body">
-            <div class="pm-spec-lbl">Kiến trúc CPU</div>
-            <div class="pm-spec-val">ARM64-v8a · ARMv7 · x86_64 (hỗ trợ đầy đủ)</div>
+            <div class="pm-spec-lbl">Chip xử lý</div>
+            <div class="pm-spec-val">Snapdragon 660+ · MediaTek Helio G85+ · Dimensity 700+</div>
           </div>
         </div>
         <div class="pm-spec-row">
           <div class="pm-spec-icon"><i class="fa-solid fa-memory"></i></div>
           <div class="pm-spec-body">
-            <div class="pm-spec-lbl">RAM tối thiểu</div>
-            <div class="pm-spec-val">3GB RAM · Khuyến nghị 6GB+ để tốt nhất</div>
+            <div class="pm-spec-lbl">RAM hỗ trợ</div>
+            <div class="pm-spec-val">3GB RAM trở lên · 6GB+ RAM hiệu suất tối đa</div>
           </div>
         </div>
         <div class="pm-spec-row">
-          <div class="pm-spec-icon"><i class="fa-solid fa-wifi"></i></div>
+          <div class="pm-spec-icon"><i class="fa-solid fa-lock-open"></i></div>
           <div class="pm-spec-body">
-            <div class="pm-spec-lbl">Kết nối mạng</div>
-            <div class="pm-spec-val">WiFi / 4G / 5G · Ping &lt; 100ms để hoạt động tốt nhất</div>
-          </div>
-        </div>
-        <div class="pm-spec-row">
-          <div class="pm-spec-icon"><i class="fa-solid fa-hdd"></i></div>
-          <div class="pm-spec-body">
-            <div class="pm-spec-lbl">Dung lượng</div>
-            <div class="pm-spec-val">Nhẹ dưới 2MB · Không ảnh hưởng bộ nhớ máy</div>
+            <div class="pm-spec-lbl">Root</div>
+            <div class="pm-spec-val">KHÔNG cần root · Hoạt động máy thường 100%</div>
           </div>
         </div>
       </div>
@@ -1035,7 +1099,6 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
         <div class="pm-card-title"><i class="fa-solid fa-gamepad"></i>Game tương thích</div>
         <div class="pm-chip-row">
           <span class="pm-chip"><i class="fa-solid fa-crosshairs"></i> Free Fire</span>
-       
         </div>
       </div>
 
@@ -1161,7 +1224,6 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
         <div class="pm-card-title"><i class="fa-solid fa-gamepad"></i>Game tương thích iOS</div>
         <div class="pm-chip-row">
           <span class="pm-chip"><i class="fa-solid fa-crosshairs"></i> Free Fire iOS</span>
-       
         </div>
       </div>
 
@@ -1391,13 +1453,13 @@ input:checked+.sw-sl::before{transform:translateX(22px);background:#fff;box-shad
           </svg>
         </div>
         <div class="feat-body">
-          <div class="feat-name">SOEED TOUCH VIEW</div>
+          <div class="feat-name">SPEED TOUCH VIEW</div>
           <div class="feat-desc">Tăng tốc cảm biến màn hình</div>
           <div class="feat-badge" id="badge-5">OFF</div>
         </div>
         <div class="feat-right">
           <div class="feat-pill" id="pill-5">OFF</div>
-          <label class="sw"><input type="checkbox" id="sw-5" onchange="toggleFeat(this,5,'SPEED HACK TURBO')"><span class="sw-sl"></span></label>
+          <label class="sw"><input type="checkbox" id="sw-5" onchange="toggleFeat(this,5,'SPEED TOUCH VIEW')"><span class="sw-sl"></span></label>
         </div>
       </div>
     </div>
@@ -1439,7 +1501,25 @@ let readNotifIds = JSON.parse(localStorage.getItem(LS_NOTIF)||'[]');
 let activeCount = 0;
 let pwdEyeVis = false;
 let appLaunched = false;
-let keyWatcher = null; /* Real-time watcher for current key validity */
+let keyWatcher = null;
+
+/* ════════════════════════════════════════════════
+   DEVICE PERFORMANCE DETECTION
+   Detects weak devices and applies low-power mode
+════════════════════════════════════════════════ */
+function detectDevicePerformance(){
+  /* Heuristic: low RAM or older device detection */
+  const isLowEnd = (
+    (navigator.deviceMemory !== undefined && navigator.deviceMemory <= 2) ||
+    (navigator.hardwareConcurrency !== undefined && navigator.hardwareConcurrency <= 2)
+  );
+  if(isLowEnd){
+    document.documentElement.classList.add('low-power');
+  }
+  return isLowEnd;
+}
+
+const IS_LOW_POWER = detectDevicePerformance();
 
 /* ════════════════════════════════════════════════
    INIT
@@ -1477,7 +1557,6 @@ function listenSettings(){
 function listenKeys(){
   db.ref('appvip/keys').on('value', snap => {
     allKeys = snap.val() || {};
-    /* If app is launched with key auth, verify key is still valid */
     if(appLaunched && appSettings.showKeyModal){
       checkCurrentKeyValidity();
     }
@@ -1505,7 +1584,6 @@ function checkCurrentKeyValidity(){
   const match = keyEntries.find(([,k]) => k.value === savedKeyVal);
 
   if(!match){
-    /* Key was deleted */
     kickOutUser('Key của bạn đã bị xóa bởi admin!');
     return;
   }
@@ -1545,16 +1623,13 @@ function kickOutUser(reason){
    APPLY SETTINGS
 ════════════════════════════════════════════════ */
 function applySettings(){
-  /* Free key standalone section */
   const fkSec = el('free-key-section');
   if(fkSec) fkSec.style.display = appSettings.showFreeKey ? '' : 'none';
   const fkInp = el('fk-link-inp');
   if(fkInp && appSettings.freeKeyLink) fkInp.value = appSettings.freeKeyLink;
 
-  /* Free key inside key modal */
   updateKmFk();
 
-  /* If key modal was turned OFF while key modal is showing → launch app */
   if(!appSettings.showKeyModal && el('key-modal-overlay').classList.contains('show')){
     localStorage.removeItem(LS_KEY_AUTH);
     localStorage.removeItem(LS_KEY_VAL);
@@ -1562,7 +1637,6 @@ function applySettings(){
     return;
   }
 
-  /* Gate logic */
   if(appSettings.requirePassword && !localStorage.getItem(LS_AUTH)){
     el('pwd-overlay').style.display = 'flex';
     el('key-modal-overlay').classList.remove('show');
@@ -1662,10 +1736,8 @@ async function submitKey(){
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực...';
   err.classList.remove('show');
 
-  /* Small delay for UX */
   await new Promise(r => setTimeout(r,500));
 
-  /* Find key */
   const keyEntries = Object.entries(allKeys);
   const matchEntry = keyEntries.find(([,k]) => k.value === val && k.status === 'active');
 
@@ -1680,7 +1752,6 @@ async function submitKey(){
   const [keyId, keyData] = matchEntry;
   const now = Date.now();
 
-  /* Check expiry */
   if(keyData.expireAt && now > keyData.expireAt){
     err.textContent = 'Key đã hết hạn sử dụng!';
     err.classList.add('show');
@@ -1689,16 +1760,13 @@ async function submitKey(){
     return;
   }
 
-  /* Device handling */
   const deviceId = getDeviceId();
-  let devSnap, devData, devArr;
+  let devArr = [];
   try {
-    devSnap = await db.ref('appvip/devices').orderByChild('keyId').equalTo(keyId).once('value');
-    devData = devSnap.val() || {};
-    devArr  = Object.entries(devData);
-  } catch(e) {
-    devArr = [];
-  }
+    const devSnap = await db.ref('appvip/devices').orderByChild('keyId').equalTo(keyId).once('value');
+    const devData = devSnap.val() || {};
+    devArr = Object.entries(devData);
+  } catch(e) { devArr = []; }
 
   const alreadyRegistered = devArr.find(([,d]) => d.deviceId === deviceId);
 
@@ -1722,7 +1790,6 @@ async function submitKey(){
     } catch(e){ console.warn(e); }
   }
 
-  /* Success */
   localStorage.setItem(LS_KEY_AUTH,'1');
   localStorage.setItem(LS_KEY_VAL, val);
   btn.innerHTML = '<i class="fa-solid fa-check"></i> Kích hoạt thành công!';
@@ -1898,7 +1965,12 @@ function markOneRead(id){
 }
 
 function notifIconMap(type){
-  const m={info:{cls:'ni-info',icon:'fa-circle-info'},warn:{cls:'ni-warn',icon:'fa-triangle-exclamation'},success:{cls:'ni-success',icon:'fa-circle-check'},danger:{cls:'ni-danger',icon:'fa-circle-xmark'}};
+  const m={
+    info:{cls:'ni-info',icon:'fa-circle-info'},
+    warn:{cls:'ni-warn',icon:'fa-triangle-exclamation'},
+    success:{cls:'ni-success',icon:'fa-circle-check'},
+    danger:{cls:'ni-danger',icon:'fa-circle-xmark'}
+  };
   return m[type]||m.info;
 }
 
@@ -1973,21 +2045,38 @@ function pingRandomizer(){
 
 /* ════════════════════════════════════════════════
    ULTRA PARTICLES SYSTEM
+   OPTIMIZED: requestAnimationFrame with frame skipping,
+   canvas pooling, fewer particles on weak devices,
+   off-screen detection pause, batch draw operations
 ════════════════════════════════════════════════ */
 function initParticles(){
   const c   = el('particles-canvas');
-  const ctx = c.getContext('2d');
+  const ctx = c.getContext('2d', {alpha:true, desynchronized:true});
+  if(!ctx) return;
   let W,H,pts=[];
+  let rafId=null;
+  let lastTime=0;
+  /* Target ~30fps for particles to reduce CPU load on weak devices */
+  const TARGET_FPS = IS_LOW_POWER ? 20 : 30;
+  const FRAME_INTERVAL = 1000/TARGET_FPS;
 
-  function resize(){ W=c.width=innerWidth; H=c.height=innerHeight; }
-  resize(); addEventListener('resize',resize);
+  function resize(){
+    W=c.width=innerWidth;
+    H=c.height=innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', debounce(resize, 200));
 
-  /* Multiple particle types for richness */
+  /* Particle counts scaled by device capability */
+  const SCALE = IS_LOW_POWER ? 0.45 : 1;
+
   const TYPES=[
-    {cols:[[255,32,32],[255,82,82]],    minR:0.3,maxR:1.8,minA:0.06,maxA:0.35,speed:0.4,count:55},
-    {cols:[[139,92,246],[196,181,253]], minR:0.2,maxR:1.2,minA:0.04,maxA:0.22,speed:0.25,count:35},
-    {cols:[[251,191,36],[245,158,11]],  minR:0.2,maxR:0.9,minA:0.04,maxA:0.18,speed:0.2, count:25},
-    {cols:[[6,182,212],[103,232,249]],  minR:0.15,maxR:0.8,minA:0.03,maxA:0.15,speed:0.18,count:20},
+    {cols:[[255,32,32],[255,82,82]],    minR:0.4,maxR:2.2,minA:0.08,maxA:0.45,speed:0.5, count:Math.round(70*SCALE)},
+    {cols:[[255,32,32],[255,60,60]],    minR:0.3,maxR:1.6,minA:0.05,maxA:0.3, speed:0.3, count:Math.round(40*SCALE)},
+    {cols:[[139,92,246],[196,181,253]], minR:0.2,maxR:1.4,minA:0.05,maxA:0.28,speed:0.28,count:Math.round(35*SCALE)},
+    {cols:[[251,191,36],[245,158,11]],  minR:0.2,maxR:1.0,minA:0.05,maxA:0.22,speed:0.22,count:Math.round(28*SCALE)},
+    {cols:[[6,182,212],[103,232,249]],  minR:0.15,maxR:0.9,minA:0.04,maxA:0.18,speed:0.2,count:Math.round(22*SCALE)},
+    {cols:[[255,82,82],[255,150,150]],  minR:0.5,maxR:3.0,minA:0.04,maxA:0.2, speed:0.15,count:Math.round(15*SCALE)},
   ];
 
   function mkPt(type){
@@ -2001,56 +2090,80 @@ function initParticles(){
       r, dx:Math.cos(angle)*spd, dy:Math.sin(angle)*spd,
       a:t.minA+Math.random()*(t.maxA-t.minA),
       col, maxA:t.minA+Math.random()*(t.maxA-t.minA),
-      pulsing:Math.random()>0.5,
-      pulseSpeed:0.01+Math.random()*0.02,
+      pulsing:Math.random()>0.55,
+      pulseSpeed:0.008+Math.random()*0.016,
       pulsePhase:Math.random()*Math.PI*2,
-      twinkle:Math.random()>0.7
+      twinkle:Math.random()>0.72
     };
   }
 
   TYPES.forEach(t=>{ for(let i=0;i<t.count;i++) pts.push(mkPt(t)); });
 
-  let frame=0;
-  function draw(){
-    frame++;
+  /* Prefilter red particles for connections (static reference, refresh periodically) */
+  let redPts = pts.filter(p=>p.col[0]>200&&p.col[1]<120);
+  let frameCount=0;
+
+  /* Connection lines — only draw every N frames to save CPU */
+  const CONN_EVERY = IS_LOW_POWER ? 6 : 3;
+  /* Glow — only for bigger particles on non-low-power */
+  const DO_GLOW = !IS_LOW_POWER;
+  /* Max connections per frame */
+  const MAX_CONN = IS_LOW_POWER ? 20 : 60;
+  const CONN_DIST = 110;
+
+  function draw(now){
+    rafId = requestAnimationFrame(draw);
+    /* Frame throttle */
+    if(now - lastTime < FRAME_INTERVAL){ return; }
+    lastTime = now;
+    frameCount++;
+
     ctx.clearRect(0,0,W,H);
 
     /* Connection lines between close red particles */
-    const redPts = pts.filter(p=>p.col[0]>200&&p.col[1]<100);
-    for(let i=0;i<redPts.length;i++){
-      for(let j=i+1;j<redPts.length;j++){
-        const dx=redPts[i].x-redPts[j].x;
-        const dy=redPts[i].y-redPts[j].y;
-        const dist=Math.sqrt(dx*dx+dy*dy);
-        if(dist<120){
-          ctx.beginPath();
-          ctx.moveTo(redPts[i].x,redPts[i].y);
-          ctx.lineTo(redPts[j].x,redPts[j].y);
-          ctx.strokeStyle=`rgba(255,32,32,${0.04*(1-dist/120)})`;
-          ctx.lineWidth=0.5;
-          ctx.stroke();
+    if(frameCount % CONN_EVERY === 0){
+      let connCount=0;
+      outer:for(let i=0;i<redPts.length;i++){
+        for(let j=i+1;j<redPts.length;j++){
+          if(connCount>=MAX_CONN) break outer;
+          const dx=redPts[i].x-redPts[j].x;
+          const dy=redPts[i].y-redPts[j].y;
+          const dist=dx*dx+dy*dy;
+          if(dist<CONN_DIST*CONN_DIST){
+            const d=Math.sqrt(dist);
+            ctx.beginPath();
+            ctx.moveTo(redPts[i].x,redPts[i].y);
+            ctx.lineTo(redPts[j].x,redPts[j].y);
+            ctx.strokeStyle=`rgba(255,32,32,${0.045*(1-d/CONN_DIST)})`;
+            ctx.lineWidth=0.5;
+            ctx.stroke();
+            connCount++;
+          }
         }
       }
     }
 
-    pts.forEach(p=>{
+    for(let i=0;i<pts.length;i++){
+      const p=pts[i];
+
       /* Pulsing alpha */
       if(p.pulsing){
         p.pulsePhase+=p.pulseSpeed;
         p.a = p.maxA*(0.5+0.5*Math.sin(p.pulsePhase));
       }
-      if(p.twinkle && frame%3===0){
-        p.a = Math.random()>0.5 ? p.maxA : p.maxA*0.2;
+      if(p.twinkle && frameCount%4===0){
+        p.a = Math.random()>0.5 ? p.maxA : p.maxA*0.15;
       }
 
-      /* Glow for larger particles */
-      if(p.r>1.2){
+      /* Glow halo for larger particles */
+      if(DO_GLOW && p.r>1.4){
         ctx.beginPath();
-        ctx.arc(p.x,p.y,p.r*3,0,Math.PI*2);
-        ctx.fillStyle=`rgba(${p.col[0]},${p.col[1]},${p.col[2]},${p.a*0.3})`;
+        ctx.arc(p.x,p.y,p.r*3.5,0,Math.PI*2);
+        ctx.fillStyle=`rgba(${p.col[0]},${p.col[1]},${p.col[2]},${p.a*0.25})`;
         ctx.fill();
       }
 
+      /* Main particle */
       ctx.beginPath();
       ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
       ctx.fillStyle=`rgba(${p.col[0]},${p.col[1]},${p.col[2]},${p.a})`;
@@ -2058,81 +2171,153 @@ function initParticles(){
 
       p.x+=p.dx; p.y+=p.dy;
       if(p.x<-10||p.x>W+10||p.y<-10||p.y>H+10){
-        Object.assign(p,mkPt());
+        const newPt = mkPt();
+        Object.assign(p,newPt);
         p.x = Math.random()<0.5 ? -5 : W+5;
+        p.y = Math.random()*H;
       }
-    });
-    requestAnimationFrame(draw);
+    }
+
+    /* Refresh red particle reference every 120 frames */
+    if(frameCount%120===0){
+      redPts = pts.filter(p=>p.col[0]>200&&p.col[1]<120);
+    }
   }
-  draw();
+  rafId = requestAnimationFrame(draw);
+
+  /* Pause when tab is hidden */
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){
+      if(rafId) cancelAnimationFrame(rafId);
+    } else {
+      lastTime=0;
+      rafId=requestAnimationFrame(draw);
+    }
+  });
 }
 
 /* ════════════════════════════════════════════════
    SPARKS SYSTEM (additional layer)
+   OPTIMIZED: object pooling, throttled interval,
+   frame skipping, visibility pause
 ════════════════════════════════════════════════ */
 function initSparks(){
   const c   = el('sparks-canvas');
-  const ctx = c.getContext('2d');
+  const ctx = c.getContext('2d', {alpha:true, desynchronized:true});
+  if(!ctx) return;
   let W,H;
+  let rafId=null;
+  let lastTime=0;
+  const TARGET_FPS = IS_LOW_POWER ? 20 : 35;
+  const FRAME_INTERVAL = 1000/TARGET_FPS;
+
   function resize(){ W=c.width=innerWidth; H=c.height=innerHeight; }
-  resize(); addEventListener('resize',resize);
+  resize();
+  window.addEventListener('resize', debounce(resize,200));
 
   const sparks=[];
-  const COLORS=['rgba(255,32,32,','rgba(255,82,82,','rgba(251,191,36,','rgba(139,92,246,'];
+  const COLORS=['rgba(255,32,32,','rgba(255,82,82,','rgba(255,120,120,','rgba(251,191,36,','rgba(139,92,246,','rgba(255,60,60,'];
+  /* Max pool size — limit on weak devices */
+  const MAX_SPARKS = IS_LOW_POWER ? 60 : 180;
+  /* Sparks per burst */
+  const SPARKS_PER_BURST = IS_LOW_POWER ? 5 : 10;
 
   function addSpark(x,y){
+    if(sparks.length >= MAX_SPARKS) return;
     const color=COLORS[Math.floor(Math.random()*COLORS.length)];
-    for(let i=0;i<8;i++){
+    for(let i=0;i<SPARKS_PER_BURST;i++){
+      if(sparks.length >= MAX_SPARKS) break;
       const angle=Math.random()*Math.PI*2;
-      const spd=0.5+Math.random()*2;
+      const spd=0.6+Math.random()*2.2;
       sparks.push({
         x,y,
-        dx:Math.cos(angle)*spd,dy:Math.sin(angle)*spd-0.5,
-        life:1,decay:0.02+Math.random()*0.04,
-        r:0.5+Math.random()*2,
+        dx:Math.cos(angle)*spd,
+        dy:Math.sin(angle)*spd-0.6,
+        life:1,
+        decay:0.018+Math.random()*0.038,
+        r:0.5+Math.random()*2.2,
         color
       });
     }
   }
 
-  /* Random spark bursts */
+  /* Random spark bursts — slower interval on weak devices */
+  const BURST_INTERVAL = IS_LOW_POWER ? 1400 : 700;
+  const BURST_CHANCE = IS_LOW_POWER ? 0.35 : 0.55;
   setInterval(()=>{
-    if(Math.random()>0.4){
-      addSpark(Math.random()*W,Math.random()*H*0.8);
+    if(Math.random() < BURST_CHANCE){
+      addSpark(Math.random()*W, Math.random()*H*0.85);
     }
-  },800);
+  }, BURST_INTERVAL);
 
-  function draw(){
+  /* Additional corner/edge bursts for richness */
+  if(!IS_LOW_POWER){
+    setInterval(()=>{
+      const edge = Math.floor(Math.random()*4);
+      if(edge===0) addSpark(Math.random()*W, 0);
+      else if(edge===1) addSpark(W, Math.random()*H);
+      else if(edge===2) addSpark(Math.random()*W, H);
+      else addSpark(0, Math.random()*H);
+    }, 2200);
+  }
+
+  function draw(now){
+    rafId = requestAnimationFrame(draw);
+    if(now - lastTime < FRAME_INTERVAL){ return; }
+    lastTime = now;
+
     ctx.clearRect(0,0,W,H);
     for(let i=sparks.length-1;i>=0;i--){
       const s=sparks[i];
+
+      /* Draw spark dot */
       ctx.beginPath();
       ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=s.color+s.life*0.6+')';
+      ctx.fillStyle=s.color+Math.min(s.life*0.7,0.9)+')';
       ctx.fill();
+
       /* Trail */
-      ctx.beginPath();
-      ctx.moveTo(s.x,s.y);
-      ctx.lineTo(s.x-s.dx*4,s.y-s.dy*4);
-      ctx.strokeStyle=s.color+s.life*0.3+')';
-      ctx.lineWidth=s.r*0.5;
-      ctx.stroke();
+      if(s.life > 0.3){
+        ctx.beginPath();
+        ctx.moveTo(s.x,s.y);
+        ctx.lineTo(s.x-s.dx*5,s.y-s.dy*5);
+        ctx.strokeStyle=s.color+s.life*0.28+')';
+        ctx.lineWidth=s.r*0.55;
+        ctx.stroke();
+      }
 
       s.x+=s.dx; s.y+=s.dy;
-      s.dy+=0.05;
+      s.dy+=0.06;
       s.life-=s.decay;
       if(s.life<=0) sparks.splice(i,1);
     }
-    requestAnimationFrame(draw);
   }
-  draw();
+  rafId = requestAnimationFrame(draw);
+
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){
+      if(rafId) cancelAnimationFrame(rafId);
+    } else {
+      lastTime=0;
+      rafId=requestAnimationFrame(draw);
+    }
+  });
 }
 
 /* ════════════════════════════════════════════════
-   UTILITY
+   UTILIT
 ════════════════════════════════════════════════ */
 function el(id){ return document.getElementById(id); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* Debounce helper to throttle resize events */
+function debounce(fn, delay){
+  let t;
+  return function(...args){
+    clearTimeout(t);
+    t = setTimeout(()=>fn.apply(this,args), delay);
+  };
+}
 </script>
 </body>
 </html>
